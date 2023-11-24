@@ -1,0 +1,13 @@
+.stop-data-title {
+    color: #818181;
+    font-size: .6em;
+}
+
+.stop-data {
+    border-bottom: 1px solid rgb(85, 90, 94);
+    margin-bottom: 10px;
+}
+
+.order-link:hover {
+    color: #818181;
+}

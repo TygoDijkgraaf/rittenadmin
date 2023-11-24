@@ -1,0 +1,93 @@
+@import "https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css";
+@import "https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css";
+
+* {
+    font-family: "Varela Round";
+}
+
+body {
+    background-color:#31363b;
+    overflow-x: hidden;
+}
+
+a:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+a {
+    color: inherit;
+}
+
+.fa-chevron-down {
+    transition: transform 0.5s;
+}
+
+.btn-bottom-left {
+    border-top-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.btn-bottom-right {
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.btn:focus, .btn:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.fa-exclamation-triangle {
+    color: #eb9422;
+}
+
+
+.modal-header {
+    border-bottom: 1px solid #4a5159;
+}
+
+.modal-content {
+    background: #41474e;
+    color: #dfdfdf;
+}
+
+.modal-footer {
+    border: none;
+    padding: 0;
+}
+
+.close, .close:active, .close:focus {
+    outline: none;
+    text-shadow: none;
+    color: #dfdfdf;
+}
+
+.home-button {
+    position: fixed;
+    transform: translate(1em, .6em);
+    font-size: 4em;
+    letter-spacing: 10px;
+    cursor: pointer;
+    z-index: 9999;
+    height: 85px;
+}
+
+.home-button>.fa-home {
+    transform: translateY(-5px);
+}
+
+@media(max-width: 700px) {
+    .home-button {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-top: -60px;
+    }
+
+    .home-button-container {
+        position: relative;
+        width: 100%;
+        margin-top: 100px;
+    }
+}

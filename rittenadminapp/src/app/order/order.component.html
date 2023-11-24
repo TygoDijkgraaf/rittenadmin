@@ -1,0 +1,125 @@
+<i class="fa fa-cube icon-bg"></i>
+<div class="home-button-container">
+  <a [routerLink]="['/']">
+    <div class="home-button" style="color: #52ffb8;">
+      <i class="fa fa-chevron-left"></i><i class="fa fa-home"></i>
+    </div>
+  </a>
+</div>
+<div class="container">
+  <div class="row">
+    <div class="col-12 text-center my-5">
+      <h1 style="font-size: 4em; font-weight: bold; color: #52ffb8"><i class="fa fa-cube"></i> Orders</h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12 col-lg-7 mx-auto">
+      <div id="allOrders">
+        <div *ngFor="let order of orders">
+          <div class="card mb-3">
+            <button type="button" class="btn btn-link text-left collapsed" id="heading{{order.orderNumber}}" data-toggle="collapse" [attr.data-target]="'#orderDescription' + order.orderNumber" aria-expanded="false">
+              <div class="card-header">
+                # {{order.orderNumber}}
+                <span class="float-right"><i class="fa fa-chevron-down"></i></span>
+              </div>
+            </button>
+            <div class="collapse" id="orderDescription{{order.orderNumber}}" [attr.aria-labelledby]="'heading' + order.orderNumber" data-parent="#allOrders">
+              <div class="card-body">
+                {{order.description}}
+              </div>
+              <div class="card-footer p-0">
+                <button (click)="setActiveOrder(order)" type="button" class="btn btn-info btn-bottom-left" data-toggle="modal" data-target="#editOrderModal"><i class="fa fa-pencil"></i></button>
+                <button (click)="setActiveOrder(order)" type="button" class="btn btn-danger btn-bottom-right float-right" data-toggle="modal" data-target="#deleteOrderModal"><i class="fa fa-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-success float-right" data-toggle="modal" data-target="#addOrderModal">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add modal -->
+<div class="modal fade" id="addOrderModal" tabindex="-1" role="dialog" aria-labelledby="addOrderModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addOrderModalLabel">Add Order</h5>
+        <button class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form #addForm="ngForm" (ngSubmit)="onAddOrder(addForm)">
+          <div class="form-group">
+            <label for="orderNumber">Order number</label>
+            <input type="text" ngModel name="orderNumber" class="form-control" id="orderNumber" placeholder="Order number" autocomplete="off" required>
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea ngModel name="description" class="form-control" id="description" placeholder="Description" autocomplete="off" required></textarea>
+          </div>
+         <div class="modal-footer">
+            <button type="button" id="closeOrderForm" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button [disabled]="addForm.invalid" type="submit" class="btn btn-primary">Save changes</button>
+         </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal fade" id="editOrderModal" tabindex="-1" role="dialog" aria-labelledby="editOrderModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+     <div class="modal-content">
+        <div class="modal-header">
+           <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+           <span aria-hidden="true">&times;</span>
+           </button>
+        </div>
+        <div class="modal-body">
+           <form #editForm="ngForm">
+              <div class="form-group">
+                 <label for="orderNumber">Order number</label>
+                 <input type="text" ngModel="{{activeOrder?.orderNumber}}" name="orderNumber" class="form-control" id="orderNumber" placeholder="Order number" required>
+              </div>
+              <div class="form-group">
+                 <label for="description">Description</label>
+                 <textarea ngModel="{{activeOrder?.description}}" name="description" class="form-control" id="description" placeholder="Description" required></textarea>
+              </div>
+              <div class="modal-footer">
+                 <button type="button" id="" data-dismiss="modal" class="btn btn-secondary">Close</button>
+                 <button (click)="onUpdateOrder(editForm)" [disabled]="editForm.invalid" data-dismiss="modal" class="btn btn-primary" >Save changes</button>
+              </div>
+           </form>
+        </div>
+     </div>
+  </div>
+</div>
+
+<!-- Delete modal -->
+<div class="modal fade" id="deleteOrderModal" tabindex="-1" role="dialog" aria-labelledby="deleteOrderModelLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+     <div class="modal-content">
+        <div class="modal-header">
+           <h5 class="modal-title" id="deleteOrderModelLabel">Delete Order</h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+           <span aria-hidden="true" style="color: white">&times;</span>
+           </button>
+        </div>
+        <div class="modal-body">
+          <p>
+            Are you sure you want to delete order <b>{{activeOrder?.orderNumber}}</b>?<br><br>
+            <i class="fa fa-exclamation-triangle"></i> This will also delete all stops associated with this order.
+          </p>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+              <button (click)="onDeleteOrder(activeOrder!.id)" class="btn btn-danger" data-dismiss="modal">Yes</button>
+           </div>
+        </div>
+     </div>
+  </div>
+</div>

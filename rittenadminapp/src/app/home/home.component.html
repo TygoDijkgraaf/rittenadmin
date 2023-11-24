@@ -1,0 +1,29 @@
+<div class="container">
+  <div class="row mb-5"></div>
+  <div class="row justify-content-center">
+    <div class=" col-12 col-lg-4 mb-4">
+      <a [routerLink]="['orders']">
+        <div class="card text-white mx-auto">
+          <div class="card-body">
+            <h2 class="card-title mb-3" style="color:#52ffb8"><i class="fa fa-cube"></i> Orders</h2>
+            <p class="card-text">Here you can manage the orders for our company.</p>
+            <i class="fa fa-chevron-right chevron" style="color:#52ffb8"></i>
+          </div>
+          <i class="fa fa-cube card-background cb-cube"></i>
+        </div>
+      </a>
+    </div>
+    <div class=" col-12 col-lg-4 mb-4">
+      <a [routerLink]="['routes']">
+        <div class="card text-white mx-auto">
+          <div class="card-body">
+            <h2 class="card-title mb-3" style="color:#f5519f"><i class="fa fa-truck" style="transform: scaleX(-1.1)"></i> Routes</h2>
+            <p class="card-text">Here you can manage the routes and all the stops associated with those routes.</p>
+            <i class="fa fa-chevron-right chevron" style="color:#f5519f"></i>
+          </div>
+          <i class="fa fa-truck card-background cb-truck" style="transform: scaleX(-1.1)"></i>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>

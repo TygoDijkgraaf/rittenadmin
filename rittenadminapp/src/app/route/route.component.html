@@ -1,0 +1,292 @@
+<i class="fa fa-truck icon-bg"></i>
+<div class="home-button-container">
+  <a [routerLink]="['/']">
+    <div class="home-button" style="color: #f5519f">
+      <i class="fa fa-chevron-left"></i><i class="fa fa-home"></i>
+    </div>
+  </a>
+</div>
+<div class="container">
+  <div class="row">
+    <div class="col-12 text-center my-5">
+      <h1 style="font-size: 4em; font-weight: bold; color: #f5519f"><i class="fa fa-truck"
+          style="transform: scaleX(-1.1)"></i> Routes</h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12 col-lg-7 mx-auto">
+      <div id="allRoutes">
+        <ng-container *ngFor="let route of routes; let i = index">
+          <div class="card mb-3">
+            <button type="button" class="btn btn-link text-left collapsed" id="heading{{i}}" data-toggle="collapse"
+              [attr.data-target]="'#routeDescription' + i" aria-expanded="false">
+              <div class="card-header">
+                <span class="big">{{route.id}}.&nbsp;{{ (route.description.length > 38) ? (route.description | slice:0:38) + '...' : route.description }}</span>
+                <span class="float-right">
+                  {{route.stops.length}} stop<span *ngIf="route.stops.length != 1">s</span>
+                  <i *ngIf="route.finished" class="fa fa-check big" style="color: #1ad11a; margin-left: 20px"></i>
+                  <i *ngIf="!route.finished" class="fa fa-clock-o big" style="color: #ecd22d; margin-left: 20px"></i>
+                  <i class="fa fa-chevron-down big" style="margin-left: 20px"></i>
+                </span>
+              </div>
+            </button>
+            <div class="collapse" id="routeDescription{{i}}" [attr.aria-labelledby]="'heading' + i"
+              data-parent="#allRoutes">
+              <div class="card-body">
+                <span><i class="fa fa-calendar-o"></i> {{route.start.toString().replace("T", " ")}}</span>
+                <div>
+                  <div class="my-3">
+                    {{route.description}}
+                  </div>
+                  <div *ngIf="route.stops.length > 0" class="card" style="margin-left: -15px; margin-right: -15px">
+                    <button type="button" class="btn btn-link text-left collapsed" id="stopsHeading{{i}}"
+                      data-toggle="collapse" [attr.data-target]="'#stops' + i" aria-expanded="false">
+                      <div class="card-header">
+                        <span class="big">Stops</span>
+                        <span class="float-right">
+                          <i class="fa fa-chevron-down big" style="margin-left: 20px"></i>
+                        </span>
+                      </div>
+                    </button>
+                    <div class="collapse" id="stops{{i}}" [attr.aria-labelledby]="'stopsHeading' + i">
+                      <div class="card-body pt-0">
+                        <div *ngFor="let stop of route.stops">
+                          <app-stop [stop]="stop" (newActiveStopEvent)="setActiveStop($event)"
+                            (updateHappened)="getRoutes()"></app-stop>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button *ngIf="!route.finished" (click)="setActiveRoute(route)" type="button"
+                    class="btn btn-success p-0" style="width: 30px; height: 30px" data-toggle="modal"
+                    data-target="#addStopModal">+</button>
+                </div>
+              </div>
+              <div class="card-footer p-0">
+                <button (click)="setActiveRoute(route)" type="button" class="btn btn-info btn-bottom-left"
+                  data-toggle="modal" data-target="#editRouteModal"><i class="fa fa-pencil"></i></button>
+                <button (click)="setActiveRoute(route)" type="button"
+                  class="btn btn-danger btn-bottom-right float-right" data-toggle="modal"
+                  data-target="#deleteRouteModal"><i class="fa fa-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+      <button type="button" class="btn btn-success float-right" data-toggle="modal"
+        data-target="#addRouteModal">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add modal -->
+<div class="modal fade" id="addRouteModal" tabindex="-1" role="dialog" aria-labelledby="addRouteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addRouteModalLabel">Add Route</h5>
+        <button class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form #addForm="ngForm" (ngSubmit)="onAddRoute(addForm)">
+          <div class="form-group">
+            <label for="start">Start</label>
+            <input type="datetime-local" max="9999-12-31T23:59:00" ngModel name="start"
+              class="form-control" id="start" required>
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea ngModel name="description" class="form-control" id="description"
+              placeholder="Description" required></textarea>
+          </div>
+          <div class="modal-footer">
+              <button type="button" id="closeRouteForm" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button [disabled]="addForm.invalid" type="submit" class="btn btn-primary">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal fade" id="editRouteModal" tabindex="-1" role="dialog" aria-labelledby="editRouteModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editRouteModalLabel">Edit Route</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form #editForm="ngForm">
+          <div class="form-group">
+            <label for="start">Start</label>
+            <input type="datetime-local" max="9999-12-31T23:59:00" ngModel="{{activeRoute?.start?.toLocaleString()}}" name="start"
+              class="form-control" id="start" required>
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea ngModel="{{activeRoute?.description}}" name="description" class="form-control" id="description"
+              placeholder="Description" required></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="" data-dismiss="modal" class="btn btn-secondary">Close</button>
+            <button (click)="onUpdateRoute(editForm)" [disabled]="editForm.invalid" data-dismiss="modal" class="btn btn-primary">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete modal -->
+<div class="modal fade" id="deleteRouteModal" tabindex="-1" role="dialog" aria-labelledby="deleteRouteModelLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteRouteModelLabel">Delete Route</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true" style="color: white">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to delete route <b>{{activeRoute?.id}}</b>?<br><br>
+          <i class="fa fa-exclamation-triangle"></i> This will also delete all stops associated with this route.
+        </p>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+          <button (click)="onDeleteRoute(activeRoute!.id)" class="btn btn-danger" data-dismiss="modal">Yes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add stop modal -->
+<div class="modal fade" id="addStopModal" tabindex="-1" role="dialog" aria-labelledby="addStopModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addStopModalLabel">Add Stop</h5>
+        <button class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form #addStopForm="ngForm" (ngSubmit)="onAddStop(addStopForm)">
+          <div class="row">
+            <div class="col-6">
+              <div class="form-group">
+                <label for="postalCode">Postal code</label>
+                <input type="text" ngModel name="postalCode" class="form-control" id="postalCode"
+                  placeholder="Postal code" autocomplete="off" required>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group">
+                <label for="houseNumber">House number</label>
+                <input type="text" ngModel name="houseNumber" class="form-control" id="houseNumber"
+                  placeholder="House number" autocomplete="off" required>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="orderId">Order</label>
+            <select ngModel name="orderId" id="orderId" class="form-control" required>
+              <option *ngFor="let order of orders" value="{{order.id}}"># {{order.orderNumber}}</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="closeStopForm" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button [disabled]="addStopForm.invalid" type="submit" class="btn btn-primary">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit stop modal -->
+<div class="modal fade" id="editStopModal" tabindex="-1" role="dialog" aria-labelledby="editStopModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editStopModalLabel">Edit Stop</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form #editStopForm="ngForm">
+          <div class="row">
+            <div class="col-6">
+              <div class="form-group">
+                <label for="postalCode">Postal code</label>
+                <input type="text" ngModel="{{activeStop?.postalCode}}" name="postalCode" class="form-control"
+                  id="postalCode" placeholder="Postal code" autocomplete="off" required>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group">
+                <label for="houseNumber">House number</label>
+                <input type="text" ngModel="{{activeStop?.houseNumber}}" name="houseNumber" class="form-control"
+                  id="houseNumber" placeholder="House number" autocomplete="off" required>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="orderId">Order</label>
+            <select ngModel="{{activeStop?.order?.id}}" name="orderId" id="orderId" class="form-control" required>
+              <option *ngFor="let order of orders" value="{{order.id}}"># {{order.orderNumber}}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="routeId">Route</label>
+            <select ngModel="{{activeStop?.routeId}}" name="routeId" id="routeId" class="form-control" required>
+              <ng-container *ngFor="let route of routes">
+                <option *ngIf="route.id == activeStop?.routeId || !route.finished" value="{{route.id}}">{{route.id}}</option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="" data-dismiss="modal" class="btn btn-secondary">Close</button>
+            <button (click)="onUpdateStop(editStopForm)" data-dismiss="modal" class="btn btn-primary">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete stop modal -->
+<div class="modal fade" id="deleteStopModal" tabindex="-1" role="dialog" aria-labelledby="deleteStopModelLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteStopModelLabel">Delete Stop</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true" style="color: white">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to delete the stop for <b>{{activeStop?.postalCode}}, {{activeStop?.houseNumber}}</b>?
+        </p>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+          <button (click)="onDeleteStop(activeStop!.id)" class="btn btn-danger" data-dismiss="modal">Yes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
