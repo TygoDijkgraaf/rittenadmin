@@ -1,10 +1,9 @@
-import { Component, OnInit, inject, Renderer2, ElementRef, AfterViewChecked, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Order } from './order';
-import { OrderService } from './order.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import { AfterViewInit, Component, ElementRef, Renderer2, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { Order } from './order';
+import { OrderService } from './order.service';
 
 @Component({
   selector: 'app-order',
@@ -17,16 +16,13 @@ import { RouterModule } from '@angular/router';
   templateUrl: './order.component.html',
   styleUrl: './order.component.css'
 })
-export class OrderComponent implements OnInit, AfterViewInit {
+export class OrderComponent implements AfterViewInit {
   private orderService: OrderService = inject(OrderService);
   private renderer: Renderer2 = inject(Renderer2);
   private elRef: ElementRef = inject(ElementRef);
-  public orders: Order[] = [];
   public activeOrder: Order | null = null;
 
-  ngOnInit(): void {
-    this.getOrders();
-  }
+  orders$ = this.orderService.orders$;
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -41,65 +37,25 @@ export class OrderComponent implements OnInit, AfterViewInit {
     }, 500);
   }
 
-  public getOrders(): void {
-    this.orderService.getAllOrders().subscribe({
-      next: (response: Order[]) => {
-        this.orders = response;
-      },
-      error: (error: HttpErrorResponse) => {
-        alert(error.message);
-      }
-    });
-  }
-
   public setActiveOrder(order: Order): void {
     this.activeOrder = order;
   }
 
   public onAddOrder(addForm: NgForm): void {
     document.getElementById("closeOrderForm")?.click();
-    this.orderService.addOrder(addForm.value).subscribe({
-      next: (response: string) => {
-        console.log(response);
-        this.getOrders();
-      },
-      error: (error: HttpErrorResponse) => {
-        const backendError = JSON.parse(error.error);
-        alert(backendError.message);
-      }
-    });
+    this.orders$ = this.orderService.addOrder(addForm.value);
     addForm.reset();
   }
 
   public onUpdateOrder(editForm: NgForm): void {
-    this.orderService.updateOrder(
+    this.orders$ = this.orderService.updateOrder(
       this.activeOrder!.id,
       editForm.value.orderNumber,
       editForm.value.description
-    ).subscribe({
-      next: (response: string) => {
-        console.log(response);
-        this.getOrders();
-      },
-      error: (error: HttpErrorResponse) => {
-        const backendError = JSON.parse(error.error);
-        alert(backendError.message);
-        this.activeOrder = null;
-      }
-    });
+    );
   }
 
   public onDeleteOrder(orderId: number): void {
-    this.orderService.deleteOrder(orderId).subscribe({
-      next: (response: string) => {
-        console.log(response);
-        this.getOrders();
-      },
-      error: (error: HttpErrorResponse) => {
-        const backendError = JSON.parse(error.error);
-        alert(backendError.message);
-        this.activeOrder = null;
-      }
-    });
+    this.orders$ = this.orderService.deleteOrder(orderId);
   }
 }

@@ -1,7 +1,7 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { EMPTY, Observable, catchError, switchMap, tap } from 'rxjs';
 import { Order } from './order';
-import { HttpClient } from '@angular/common/http';
 
 @Injectable({providedIn: 'root'})
 export class OrderService {
@@ -11,25 +11,48 @@ export class OrderService {
 
   private http = inject(HttpClient);
 
+  public orders$ = this.getAllOrders();
+
   public getAllOrders(): Observable<Order[]> {
-    return this.http.get<Order[]>(this.baseUrl);
+    return this.http.get<Order[]>(this.baseUrl).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  public addOrder(order: Order): Observable<string> {
-    return this.http.post(`${this.baseUrl}/new`, order, { responseType: "text" });
+  public addOrder(order: Order): Observable<Order[]> {
+    return this.http.post(`${this.baseUrl}/new`, order, { responseType: "text" }).pipe(
+      tap((response: string) => console.log(response)),
+      catchError(this.handleError),
+      switchMap(() => this.getAllOrders())
+    );
   }
 
-  public updateOrder(orderId: number, orderNumber: string, description: string): Observable<string> {
+  public updateOrder(orderId: number, orderNumber: string, description: string): Observable<Order[]> {
     return this.http.put(`${this.baseUrl}/update/${orderId}`, null, {
       params: {
         orderNumber: orderNumber,
         description: description
       },
       responseType: "text"
-    });
+    }).pipe(
+      tap((response: string) => console.log(response)),
+      catchError(this.handleError),
+      switchMap(() => this.getAllOrders())
+    );
   }
 
-  public deleteOrder(orderId: number): Observable<string> {
-    return this.http.delete(`${this.baseUrl}/delete/${orderId}`, { responseType: "text" });
+  public deleteOrder(orderId: number): Observable<Order[]> {
+    return this.http.delete(`${this.baseUrl}/delete/${orderId}`, { responseType: "text" }).pipe(
+      tap((response: string) => console.log(response)),
+      catchError(this.handleError),
+      switchMap(() => this.getAllOrders())
+    );
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    const errorMessage = JSON.parse(error.error).message;
+    alert(errorMessage);
+    console.error(errorMessage);
+    return EMPTY;
   }
 }

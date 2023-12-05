@@ -15,7 +15,7 @@
   <div class="row">
     <div class="col-12 col-lg-7 mx-auto">
       <div id="allOrders">
-        <div *ngFor="let order of orders">
+        <div *ngFor="let order of orders$ | async">
           <div class="card mb-3">
             <button type="button" class="btn btn-link text-left collapsed" id="heading{{order.orderNumber}}" data-toggle="collapse" [attr.data-target]="'#orderDescription' + order.orderNumber" aria-expanded="false">
               <div class="card-header">

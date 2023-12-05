@@ -2,9 +2,11 @@ import { Component, Input, Output, inject, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Stop } from './stop';
 import { StopService } from './stop.service';
-import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { Route } from '../route/route';
+import { RouteService } from '../route/route.service';
+import { Observable, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-stop',
@@ -20,21 +22,15 @@ import { RouterModule } from '@angular/router';
 export class StopComponent {
   @Input() public stop: Stop | null = null;
   @Output() public newActiveStopEvent = new EventEmitter<Stop>();
-  @Output() public updateHappened = new EventEmitter<void>();
+  @Output() public stopDeliveredEvent = new EventEmitter<Observable<Route[]>>();
 
   private stopService: StopService = inject(StopService);
+  private routeService: RouteService = inject(RouteService);
 
   public onDeliverStop(stopId: number): void {
-    this.stopService.deliverStop(stopId).subscribe({
-      next: (response: string) => {
-        console.log(response);
-        this.updateHappened.emit();
-      },
-      error: (error: HttpErrorResponse) => {
-        const backendError = JSON.parse(error.error);
-        alert(backendError.message);
-      }
-    });
+    this.stopDeliveredEvent.emit(this.stopService.deliverStop(stopId).pipe(
+      switchMap(() => this.routeService.getAllRoutes())
+    ));
   }
 
   public setActiveStop(stop: Stop): void {
