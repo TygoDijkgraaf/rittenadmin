@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { merge, Observable, of, startWith, Subject, switchMap } from 'rxjs';
+import { merge, Observable, of, startWith, Subject, switchMap, Subscription } from 'rxjs';
 import { OrderService } from '../order/order.service';
 import { Stop } from '../stop/stop';
 import { StopComponent } from '../stop/stop.component';
@@ -22,7 +22,7 @@ import { RouteService } from './route.service';
   templateUrl: './route.component.html',
   styleUrl: './route.component.css'
 })
-export class RouteComponent implements OnInit {
+export class RouteComponent implements OnInit, OnDestroy {
   private routeService: RouteService = inject(RouteService);
   private stopService: StopService = inject(StopService);
   private orderService: OrderService = inject(OrderService);
@@ -34,6 +34,20 @@ export class RouteComponent implements OnInit {
   addStopForm!: FormGroup;
   editStopForm!: FormGroup;
 
+  postalCodeErrorMessage = '';
+  private postalCodeValidationMessages: { [key: string]: string } = {
+    required: 'Please enter a postal code',
+    pattern: 'Please enter a valid postal code'
+  }
+
+  houseNumberErrorMessage = '';
+  private houseNumberValidationMessages: { [key: string]: string } = {
+    required: 'Please enter a house number',
+    pattern: 'Please enter a valid house number'
+  }
+
+  private subs: Subscription[] = [];
+
   routeActionSubject = new Subject<{ action: string, data?: any }>();
   stopActionSubject = new Subject<{ action: string, data?: any }>();
   routeAction$ = this.routeActionSubject.asObservable();
@@ -44,7 +58,7 @@ export class RouteComponent implements OnInit {
     this.stopAction$
   );
 
-  orders$ = this.orderService.orders$
+  orders$ = this.orderService.getAllOrders();
   routes$ = this.action$.pipe(
     startWith({action: 'none', data: this.routeService.getAllRoutes()}),
     switchMap(action => {
@@ -97,6 +111,48 @@ export class RouteComponent implements OnInit {
       orderId: new FormControl(null, Validators.required),
       routeId: new FormControl(null, Validators.required)
     });
+
+    const postalCodeControlAdd = this.addStopForm.get('postalCode');
+    this.subs.push(postalCodeControlAdd!.valueChanges.subscribe(
+      () => this.setPostalCodeMessage(postalCodeControlAdd!)
+    ));
+
+    const houseNumberControlAdd = this.addStopForm.get('houseNumber');
+    this.subs.push(houseNumberControlAdd!.valueChanges.subscribe(
+      () => this.setHouseNumberMessage(houseNumberControlAdd!)
+    ));
+
+    const postalCodeControlEdit = this.editStopForm.get('postalCode');
+    this.subs.push(postalCodeControlEdit!.valueChanges.subscribe(
+      () => this.setPostalCodeMessage(postalCodeControlEdit!)
+    ));
+
+    const houseNumberControlEdit = this.editStopForm.get('houseNumber');
+    this.subs.push(houseNumberControlEdit!.valueChanges.subscribe(
+      () => this.setHouseNumberMessage(houseNumberControlEdit!)
+    ));
+  }
+
+  ngOnDestroy(): void {
+      this.subs.forEach(sub => sub.unsubscribe());
+  }
+
+  private setPostalCodeMessage(c: AbstractControl): void {
+    this.postalCodeErrorMessage = '';
+    if (c.dirty && c.errors) {
+      this.postalCodeErrorMessage = Object.keys(c.errors).map(
+        key => this.postalCodeValidationMessages[key]
+      ).join(' ');
+    }
+  }
+
+  private setHouseNumberMessage(c: AbstractControl): void {
+    this.houseNumberErrorMessage = '';
+    if (c.dirty && c.errors) {
+      this.houseNumberErrorMessage = Object.keys(c.errors).map(
+        key => this.houseNumberValidationMessages[key]
+      ).join(' ');
+    }
   }
 
   public setActiveRoute(route: Route): void {

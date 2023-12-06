@@ -77,6 +77,13 @@ a {
     transform: translateY(-5px);
 }
 
+.spinner {
+    display: flex;
+    justify-content: center;
+    font-size: 5rem;
+    color: #dfdfdf;
+}
+
 @media(max-width: 700px) {
     .home-button {
         position: absolute;

@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Observable, of, startWith, Subject, switchMap } from 'rxjs';
+import { Observable, Subject, Subscription, of, startWith, switchMap } from 'rxjs';
 import { Order } from './order';
 import { OrderService } from './order.service';
 
@@ -17,12 +17,21 @@ import { OrderService } from './order.service';
   templateUrl: './order.component.html',
   styleUrl: './order.component.css'
 })
-export class OrderComponent implements OnInit {
+export class OrderComponent implements OnInit, OnDestroy {
   private orderService: OrderService = inject(OrderService);
   activeOrder: Order | null = null;
 
   addForm!: FormGroup;
   editForm!: FormGroup;
+
+  orderNumberErrorMessage = '';
+  private validationMessages: { [key: string]: string } = {
+    required: 'Please enter an order number',
+    minlength: 'Order number is too short',
+    maxlength: 'Order number is too long'
+  };
+
+  private subs: Subscription[] = [];
 
   actionSubject = new Subject<{ action: string, data?: any }>();
   action$ = this.actionSubject.asObservable();
@@ -58,6 +67,29 @@ export class OrderComponent implements OnInit {
                                         Validators.maxLength(20)]),
       description: new FormControl('')
     });
+
+    const orderNumberControlAdd = this.addForm.get('orderNumber');
+    this.subs.push(orderNumberControlAdd!.valueChanges.subscribe(
+      () => this.setMessage(orderNumberControlAdd!)
+    ));
+
+    const orderNumberControlEdit = this.editForm.get('orderNumber');
+    this.subs.push(orderNumberControlEdit!.valueChanges.subscribe(
+      () => this.setMessage(orderNumberControlEdit!)
+    ));
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach(sub => sub.unsubscribe());
+  }
+
+  private setMessage(c: AbstractControl): void {
+    this.orderNumberErrorMessage = '';
+    if (c.dirty && c.errors) {
+      this.orderNumberErrorMessage = Object.keys(c.errors).map(
+        key => this.validationMessages[key]
+      ).join(' ');
+    }
   }
 
   public setActiveOrder(order: Order): void {

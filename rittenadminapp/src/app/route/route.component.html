@@ -13,7 +13,7 @@
           style="transform: scaleX(-1.1)"></i> Routes</h1>
     </div>
   </div>
-  <div class="row" *ngIf="routes$ | async as routes">
+  <div class="row" *ngIf="routes$ | async as routes; else loading">
     <ng-container *ngIf="orders$ | async as orders">
       <div class="col-12 col-lg-7 mx-auto">
         <div id="allRoutes">
@@ -207,7 +207,11 @@
                              id="postalCode"
                              placeholder="Postal code"
                              autocomplete="off"
-                             formControlName="postalCode">
+                             formControlName="postalCode"
+                             [ngClass]="{'is-invalid': postalCodeErrorMessage}">
+                      <div class="invalid-feedback">
+                        {{ postalCodeErrorMessage }}
+                      </div>
                     </div>
                   </div>
                   <div class="col-6">
@@ -218,7 +222,11 @@
                              id="houseNumber"
                              placeholder="House number"
                              autocomplete="off"
-                             formControlName="houseNumber">
+                             formControlName="houseNumber"
+                             [ngClass]="{'is-invalid': houseNumberErrorMessage}">
+                      <div class="invalid-feedback">
+                        {{ houseNumberErrorMessage }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -262,7 +270,11 @@
                              id="postalCode"
                              placeholder="Postal code"
                              autocomplete="off"
-                             formControlName="postalCode">
+                             formControlName="postalCode"
+                             [ngClass]="{'is-invalid': postalCodeErrorMessage}">
+                      <div class="invalid-feedback">
+                        {{ postalCodeErrorMessage }}
+                      </div>
                     </div>
                   </div>
                   <div class="col-6">
@@ -273,7 +285,11 @@
                              id="houseNumber"
                              placeholder="House number"
                              autocomplete="off"
-                             formControlName="houseNumber">
+                             formControlName="houseNumber"
+                             [ngClass]="{'is-invalid': houseNumberErrorMessage}">
+                      <div class="invalid-feedback">
+                        {{ houseNumberErrorMessage }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -333,4 +349,13 @@
       </div>
     </ng-container>
   </div>
+  <ng-template #loading>
+    <div class="row">
+      <div class="col-12 col-lg-7 mx-auto">
+        <div class="spinner">
+          <i class="fa fa-spinner fa-spin fa-pulse"></i>
+        </div>
+      </div>
+    </div>
+  </ng-template>
 </div>

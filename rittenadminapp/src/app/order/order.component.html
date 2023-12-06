@@ -13,9 +13,9 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-12 col-lg-7 mx-auto">
+    <div class="col-12 col-lg-7 mx-auto" *ngIf="orders$ | async as orders; else loading">
       <div id="allOrders">
-        <div *ngFor="let order of orders$ | async">
+        <div *ngFor="let order of orders">
           <div class="card mb-3">
             <button type="button" class="btn btn-link text-left collapsed" id="heading{{order.orderNumber}}" data-toggle="collapse" [attr.data-target]="'#orderDescription' + order.orderNumber" aria-expanded="false">
               <div class="card-header">
@@ -37,6 +37,13 @@
       </div>
       <button type="button" class="btn btn-success float-right" data-toggle="modal" data-target="#addOrderModal">Add</button>
     </div>
+    <ng-template #loading>
+      <div class="col-12 col-lg-7 mx-auto" >
+        <div class="spinner">
+          <i class="fa fa-spinner fa-spin fa-pulse"></i>
+        </div>
+      </div>
+    </ng-template>
   </div>
 </div>
 
@@ -59,7 +66,11 @@
                    id="orderNumber"
                    placeholder="Order number"
                    autocomplete="off"
-                   formControlName="orderNumber">
+                   formControlName="orderNumber"
+                   [ngClass]="{'is-invalid': orderNumberErrorMessage}">
+            <div class="invalid-feedback">
+              {{ orderNumberErrorMessage }}
+            </div>
           </div>
           <div class="form-group">
             <label for="description">Description</label>
@@ -99,7 +110,12 @@
                        id="orderNumber"
                        placeholder="Order number"
                        autocomplete="off"
-                       formControlName="orderNumber">
+                       formControlName="orderNumber"
+                       [ngClass]="{'is-invalid': editForm.get('orderNumber')?.dirty &&
+                                                 editForm.get('orderNumber')?.errors}">
+                <div class="invalid-feedback">
+                  {{ orderNumberErrorMessage }}
+                </div>
               </div>
               <div class="form-group">
                 <label for="description">Description</label>
