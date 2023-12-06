@@ -1,20 +1,16 @@
-import { Component, Input, Output, inject, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Stop } from './stop';
-import { StopService } from './stop.service';
-import { FormGroup, FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Observable, switchMap } from 'rxjs';
 import { Route } from '../route/route';
 import { RouteService } from '../route/route.service';
-import { Observable, switchMap } from 'rxjs';
+import { Stop } from './stop';
+import { StopService } from './stop.service';
 
 @Component({
   selector: 'app-stop',
   standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule,
+    CommonModule
   ],
   templateUrl: './stop.component.html',
   styleUrl: './stop.component.css'

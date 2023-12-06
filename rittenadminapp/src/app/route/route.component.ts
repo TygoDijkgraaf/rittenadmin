@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, NgForm, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { merge, Observable, of, startWith, Subject, switchMap, tap } from 'rxjs';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { merge, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 import { OrderService } from '../order/order.service';
 import { Stop } from '../stop/stop';
 import { StopComponent } from '../stop/stop.component';
@@ -16,7 +16,7 @@ import { RouteService } from './route.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterModule,
+    RouterLink,
     StopComponent
   ],
   templateUrl: './route.component.html',
@@ -82,16 +82,20 @@ export class RouteComponent implements OnInit {
     });
 
     this.addStopForm = new FormGroup({
-      postalCode: new FormControl(''),
-      houseNumber: new FormControl(''),
-      orderId: new FormControl(null)
+      postalCode: new FormControl('', [Validators.required,
+                                       Validators.pattern(/^\d{4}\s?[a-zA-Z]{2}$/)]),
+      houseNumber: new FormControl('', [Validators.required,
+                                        Validators.pattern(/^\d+(\s?[a-zA-Z])?$/)]),
+      orderId: new FormControl(null, Validators.required)
     });
 
     this.editStopForm = new FormGroup({
-      postalCode: new FormControl(''),
-      houseNumber: new FormControl(''),
-      orderId: new FormControl(null),
-      routeId: new FormControl(null)
+      postalCode: new FormControl('', [Validators.required,
+                                       Validators.pattern(/^\d{4}\s?[a-zA-Z]{2}$/)]),
+      houseNumber: new FormControl('', [Validators.required,
+                                        Validators.pattern(/^\d+(\s?[a-zA-Z])?$/)]),
+      orderId: new FormControl(null, Validators.required),
+      routeId: new FormControl(null, Validators.required)
     });
   }
 
@@ -111,6 +115,10 @@ export class RouteComponent implements OnInit {
       orderId: this.activeStop.order.id,
       routeId: this.activeStop.routeId
     });
+  }
+
+  private addressFormat(str: string): string {
+    return str.replaceAll(' ', '').toUpperCase();
   }
 
   public onAddRoute(): Observable<Route[]> {
@@ -135,8 +143,8 @@ export class RouteComponent implements OnInit {
   public onAddStop(): Observable<Route[]> {
     document.getElementById("closeStopForm")?.click();
     const result$ = this.stopService.addStop({
-      postalCode: this.addStopForm.value.postalCode,
-      houseNumber: this.addStopForm.value.houseNumber,
+      postalCode: this.addressFormat(this.addStopForm.value.postalCode),
+      houseNumber: this.addressFormat(this.addStopForm.value.houseNumber),
       orderId: this.addStopForm.value.orderId,
       routeId: this.activeRoute!.id
     }).pipe(
@@ -149,8 +157,8 @@ export class RouteComponent implements OnInit {
   public onUpdateStop(): Observable<Route[]> {
     return this.stopService.updateStop(
       this.activeStop!.id,
-      this.editStopForm.value.postalCode,
-      this.editStopForm.value.houseNumber,
+      this.addressFormat(this.editStopForm.value.postalCode),
+      this.addressFormat(this.editStopForm.value.houseNumber),
       this.editStopForm.value.orderId,
       this.editStopForm.value.routeId
     ).pipe(

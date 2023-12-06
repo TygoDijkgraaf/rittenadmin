@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, NgForm, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { Observable, Subject, of, startWith, switchMap } from 'rxjs';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { Observable, of, startWith, Subject, switchMap } from 'rxjs';
 import { Order } from './order';
 import { OrderService } from './order.service';
 
@@ -12,7 +12,7 @@ import { OrderService } from './order.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterModule,
+    RouterLink,
   ],
   templateUrl: './order.component.html',
   styleUrl: './order.component.css'

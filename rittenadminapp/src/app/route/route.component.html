@@ -98,7 +98,6 @@
                          max="9999-12-31T23:59:00"
                          class="form-control"
                          id="start"
-                         required
                          formControlName="start">
                 </div>
                 <div class="form-group">
@@ -106,7 +105,6 @@
                   <textarea class="form-control"
                             id="description"
                             placeholder="Description"
-                            required
                             formControlName="description">
                   </textarea>
                 </div>
@@ -140,7 +138,6 @@
                          max="9999-12-31T23:59:00"
                          class="form-control"
                          id="start"
-                         required
                          formControlName="start">
                 </div>
                 <div class="form-group">
@@ -148,7 +145,6 @@
                   <textarea class="form-control"
                             id="description"
                             placeholder="Description"
-                            required
                             formControlName="description">
                   </textarea>
                 </div>
@@ -211,7 +207,6 @@
                              id="postalCode"
                              placeholder="Postal code"
                              autocomplete="off"
-                             required
                              formControlName="postalCode">
                     </div>
                   </div>
@@ -223,7 +218,6 @@
                              id="houseNumber"
                              placeholder="House number"
                              autocomplete="off"
-                             required
                              formControlName="houseNumber">
                     </div>
                   </div>
@@ -232,7 +226,6 @@
                   <label for="orderId">Order</label>
                   <select id="orderId"
                           class="form-control"
-                          required
                           formControlName="orderId">
                     <option *ngFor="let order of orders" value="{{order.id}}"># {{order.orderNumber}}</option>
                   </select>
@@ -269,7 +262,6 @@
                              id="postalCode"
                              placeholder="Postal code"
                              autocomplete="off"
-                             required
                              formControlName="postalCode">
                     </div>
                   </div>
@@ -281,7 +273,6 @@
                              id="houseNumber"
                              placeholder="House number"
                              autocomplete="off"
-                             required
                              formControlName="houseNumber">
                     </div>
                   </div>
@@ -290,7 +281,6 @@
                   <label for="orderId">Order</label>
                   <select id="orderId"
                           class="form-control"
-                          required
                           formControlName="orderId">
                     <option *ngFor="let order of orders" value="{{order.id}}"># {{order.orderNumber}}</option>
                   </select>
@@ -299,7 +289,6 @@
                   <label for="routeId">Route</label>
                   <select id="routeId"
                           class="form-control"
-                          required
                           formControlName="routeId">
                     <ng-container *ngFor="let route of routes">
                       <option *ngIf="route.id == activeStop?.routeId || !route.finished" value="{{route.id}}">
@@ -310,7 +299,7 @@
                 </div>
                 <div class="modal-footer">
                   <button type="button" id="" data-dismiss="modal" class="btn btn-secondary">Close</button>
-                  <button (click)="stopActionSubject.next({action: 'updateStop'})" data-dismiss="modal" class="btn btn-primary">Save changes</button>
+                  <button (click)="stopActionSubject.next({action: 'updateStop'})" [disabled]="editStopForm.invalid" data-dismiss="modal" class="btn btn-primary">Save changes</button>
                 </div>
               </form>
             </div>
