@@ -2,7 +2,7 @@ import { Component, Input, Output, inject, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Stop } from './stop';
 import { StopService } from './stop.service';
-import { FormsModule } from '@angular/forms';
+import { FormGroup, FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Route } from '../route/route';
 import { RouteService } from '../route/route.service';

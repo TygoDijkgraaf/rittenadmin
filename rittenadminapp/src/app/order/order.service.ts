@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { EMPTY, Observable, catchError, switchMap, tap } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, of, switchMap, tap } from 'rxjs';
 import { Order } from './order';
 
 @Injectable({providedIn: 'root'})
@@ -11,7 +11,7 @@ export class OrderService {
 
   private http = inject(HttpClient);
 
-  public orders$ = this.getAllOrders();
+  orders$ = this.getAllOrders();
 
   public getAllOrders(): Observable<Order[]> {
     return this.http.get<Order[]>(this.baseUrl).pipe(

@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, Renderer2, inject } from '@angular/core';
-import { FormsModule, NgForm } from '@angular/forms';
+import { Component, inject, OnInit } from '@angular/core';
+import { FormControl, FormGroup, FormsModule, NgForm, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { Observable, Subject, of, startWith, switchMap } from 'rxjs';
 import { Order } from './order';
 import { OrderService } from './order.service';
 
@@ -10,52 +11,79 @@ import { OrderService } from './order.service';
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    ReactiveFormsModule,
     RouterModule,
   ],
   templateUrl: './order.component.html',
   styleUrl: './order.component.css'
 })
-export class OrderComponent implements AfterViewInit {
+export class OrderComponent implements OnInit {
   private orderService: OrderService = inject(OrderService);
-  private renderer: Renderer2 = inject(Renderer2);
-  private elRef: ElementRef = inject(ElementRef);
-  public activeOrder: Order | null = null;
+  activeOrder: Order | null = null;
 
-  orders$ = this.orderService.orders$;
+  addForm!: FormGroup;
+  editForm!: FormGroup;
 
-  ngAfterViewInit(): void {
-    setTimeout(() => {
-      if (window.location.search) {
-        const params = new URLSearchParams(window.location.search);
-        const orderNumber = params.get("orderNumber");
-        const collapsable = this.elRef.nativeElement.querySelector(`#orderDescription${orderNumber}`);
-        const heading = this.elRef.nativeElement.querySelector(`#heading${orderNumber}`)
-        this.renderer.addClass(collapsable, "show");;
-        this.renderer.removeClass(heading, "collapsed");
+  actionSubject = new Subject<{ action: string, data?: any }>();
+  action$ = this.actionSubject.asObservable();
+
+  orders$ = this.action$.pipe(
+    startWith(this.orderService.getAllOrders()),
+    switchMap(action => {
+      if (action instanceof Observable) return action;
+      switch (action.action) {
+        case 'addOrder':
+          return this.onAddOrder();
+        case 'updateOrder':
+          return this.onUpdateOrder();
+        case 'deleteOrder':
+          return this.onDeleteOrder(action.data);
+        default:
+          return of(null);
       }
-    }, 500);
+    })
+  );
+
+  ngOnInit(): void {
+    this.addForm = new FormGroup({
+      orderNumber: new FormControl('', [Validators.required,
+                                        Validators.minLength(3),
+                                        Validators.maxLength(20)]),
+      description: new FormControl('')
+    });
+
+    this.editForm = new FormGroup({
+      orderNumber: new FormControl('', [Validators.required,
+                                        Validators.minLength(3),
+                                        Validators.maxLength(20)]),
+      description: new FormControl('')
+    });
   }
 
   public setActiveOrder(order: Order): void {
     this.activeOrder = order;
+    this.editForm.setValue({
+      orderNumber: this.activeOrder.orderNumber,
+      description: this.activeOrder.description
+    });
   }
 
-  public onAddOrder(addForm: NgForm): void {
+  public onAddOrder(): Observable<Order[]> {
     document.getElementById("closeOrderForm")?.click();
-    this.orders$ = this.orderService.addOrder(addForm.value);
-    addForm.reset();
+    const result$ = this.orderService.addOrder(this.addForm.value);
+    this.addForm.reset();
+    return result$;
   }
 
-  public onUpdateOrder(editForm: NgForm): void {
-    this.orders$ = this.orderService.updateOrder(
+  public onUpdateOrder(): Observable<Order[]> {
+    return this.orderService.updateOrder(
       this.activeOrder!.id,
-      editForm.value.orderNumber,
-      editForm.value.description
+      this.editForm.value.orderNumber,
+      this.editForm.value.description
     );
   }
 
-  public onDeleteOrder(orderId: number): void {
-    this.orders$ = this.orderService.deleteOrder(orderId);
+  public onDeleteOrder(orderId: number): Observable<Order[]> {
+    return this.orderService.deleteOrder(orderId);
   }
 }

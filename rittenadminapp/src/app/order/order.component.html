@@ -51,14 +51,26 @@
         </button>
       </div>
       <div class="modal-body">
-        <form #addForm="ngForm" (ngSubmit)="onAddOrder(addForm)">
+        <form [formGroup]="addForm" (ngSubmit)="actionSubject.next({action: 'addOrder'})">
           <div class="form-group">
             <label for="orderNumber">Order number</label>
-            <input type="text" ngModel name="orderNumber" class="form-control" id="orderNumber" placeholder="Order number" autocomplete="off" required>
+            <input type="text"
+                   class="form-control"
+                   id="orderNumber"
+                   placeholder="Order number"
+                   autocomplete="off"
+                   required
+                   formControlName="orderNumber">
           </div>
           <div class="form-group">
             <label for="description">Description</label>
-            <textarea ngModel name="description" class="form-control" id="description" placeholder="Description" autocomplete="off" required></textarea>
+            <textarea class="form-control"
+                      id="description"
+                      placeholder="Description"
+                      autocomplete="off"
+                      required
+                      formControlName="description">
+            </textarea>
           </div>
          <div class="modal-footer">
             <button type="button" id="closeOrderForm" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -81,18 +93,26 @@
            </button>
         </div>
         <div class="modal-body">
-           <form #editForm="ngForm">
+           <form [formGroup]="editForm">
               <div class="form-group">
-                 <label for="orderNumber">Order number</label>
-                 <input type="text" ngModel="{{activeOrder?.orderNumber}}" name="orderNumber" class="form-control" id="orderNumber" placeholder="Order number" required>
+                <label for="orderNumber">Order number</label>
+                <input type="text"
+                       class="form-control"
+                       id="orderNumber"
+                       placeholder="Order number"
+                       formControlName="orderNumber">
               </div>
               <div class="form-group">
-                 <label for="description">Description</label>
-                 <textarea ngModel="{{activeOrder?.description}}" name="description" class="form-control" id="description" placeholder="Description" required></textarea>
+                <label for="description">Description</label>
+                <textarea class="form-control"
+                          id="description"
+                          placeholder="Description"
+                          formControlName="description">
+                </textarea>
               </div>
               <div class="modal-footer">
-                 <button type="button" id="" data-dismiss="modal" class="btn btn-secondary">Close</button>
-                 <button (click)="onUpdateOrder(editForm)" [disabled]="editForm.invalid" data-dismiss="modal" class="btn btn-primary" >Save changes</button>
+                 <button type="button" data-dismiss="modal" class="btn btn-secondary">Close</button>
+                 <button (click)="actionSubject.next({action: 'updateOrder'})" [disabled]="editForm.invalid" data-dismiss="modal" class="btn btn-primary" >Save changes</button>
               </div>
            </form>
         </div>
@@ -117,7 +137,7 @@
           </p>
            <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
-              <button (click)="onDeleteOrder(activeOrder!.id)" class="btn btn-danger" data-dismiss="modal">Yes</button>
+              <button (click)="actionSubject.next({action: 'deleteOrder', data: activeOrder!.id})" class="btn btn-danger" data-dismiss="modal">Yes</button>
            </div>
         </div>
      </div>

@@ -1,9 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
-import { FormsModule, NgForm } from '@angular/forms';
+import { Component, inject, OnInit } from '@angular/core';
+import { FormControl, FormGroup, FormsModule, NgForm, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { Observable, switchMap, shareReplay, share, combineLatest, map } from 'rxjs';
-import { Order } from '../order/order';
+import { merge, Observable, of, startWith, Subject, switchMap, tap } from 'rxjs';
 import { OrderService } from '../order/order.service';
 import { Stop } from '../stop/stop';
 import { StopComponent } from '../stop/stop.component';
@@ -16,81 +15,152 @@ import { RouteService } from './route.service';
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    ReactiveFormsModule,
     RouterModule,
     StopComponent
   ],
   templateUrl: './route.component.html',
   styleUrl: './route.component.css'
 })
-export class RouteComponent {
+export class RouteComponent implements OnInit {
   private routeService: RouteService = inject(RouteService);
   private stopService: StopService = inject(StopService);
   private orderService: OrderService = inject(OrderService);
   public activeRoute: Route | null = null;
   public activeStop: Stop | null = null;
 
-  routes$ = this.routeService.routes$
+  addForm!: FormGroup;
+  editForm!: FormGroup;
+  addStopForm!: FormGroup;
+  editStopForm!: FormGroup;
+
+  routeActionSubject = new Subject<{ action: string, data?: any }>();
+  stopActionSubject = new Subject<{ action: string, data?: any }>();
+  routeAction$ = this.routeActionSubject.asObservable();
+  stopAction$ = this.stopActionSubject.asObservable();
+
+  action$ = merge(
+    this.routeAction$,
+    this.stopAction$
+  );
+
   orders$ = this.orderService.orders$
+  routes$ = this.action$.pipe(
+    startWith({action: 'none', data: this.routeService.getAllRoutes()}),
+    switchMap(action => {
+      if (action.action === 'none') return action.data as Observable<Route[]>;
+      switch (action.action) {
+        case 'addRoute':
+          return this.onAddRoute();
+        case 'updateRoute':
+          return this.onUpdateRoute();
+        case 'deleteRoute':
+          return this.onDeleteRoute(action.data);
+        case 'addStop':
+          return this.onAddStop();
+        case 'updateStop':
+          return this.onUpdateStop();
+        case 'deleteStop':
+          return this.onDeleteStop(action.data);
+        case 'deliverStop':
+          return action.data as Observable<Route[]>;
+        default:
+          return of(null);
+      }
+    })
+  );
+
+  ngOnInit(): void {
+    this.addForm = new FormGroup({
+      start: new FormControl(null, Validators.required),
+      description: new FormControl('')
+    });
+
+    this.editForm = new FormGroup({
+      start: new FormControl(null, Validators.required),
+      description: new FormControl('')
+    });
+
+    this.addStopForm = new FormGroup({
+      postalCode: new FormControl(''),
+      houseNumber: new FormControl(''),
+      orderId: new FormControl(null)
+    });
+
+    this.editStopForm = new FormGroup({
+      postalCode: new FormControl(''),
+      houseNumber: new FormControl(''),
+      orderId: new FormControl(null),
+      routeId: new FormControl(null)
+    });
+  }
 
   public setActiveRoute(route: Route): void {
     this.activeRoute = route;
+    this.editForm.setValue({
+      start: this.activeRoute.start.toLocaleString(),
+      description: this.activeRoute.description
+    });
   }
 
   public setActiveStop(stop: Stop): void {
     this.activeStop = stop;
+    this.editStopForm.setValue({
+      postalCode: this.activeStop.postalCode,
+      houseNumber: this.activeStop.houseNumber,
+      orderId: this.activeStop.order.id,
+      routeId: this.activeStop.routeId
+    });
   }
 
-  public onAddRoute(addForm: NgForm): void {
+  public onAddRoute(): Observable<Route[]> {
     document.getElementById("closeRouteForm")?.click();
-    this.routes$ = this.routeService.addRoute({ ...addForm.value, stops: [] });
-    addForm.reset();
+    const result$ = this.routeService.addRoute({ ...this.addForm.value, stops: [] });
+    this.addForm.reset();
+    return result$;
   }
 
-  public onUpdateRoute(editForm: NgForm): void {
-    this.routes$ = this.routeService.updateRoute(
+  public onUpdateRoute(): Observable<Route[]> {
+    return this.routeService.updateRoute(
       this.activeRoute!.id,
-      editForm.value.start,
-      editForm.value.description
+      this.editForm.value.start,
+      this.editForm.value.description
     );
   }
 
-  public onDeleteRoute(routeId: number): void {
-    this.routes$ = this.routeService.deleteRoute(routeId);
+  public onDeleteRoute(routeId: number): Observable<Route[]> {
+    return this.routeService.deleteRoute(routeId);
   }
 
-  public onAddStop(addStopForm: NgForm): void {
+  public onAddStop(): Observable<Route[]> {
     document.getElementById("closeStopForm")?.click();
-    this.routes$ = this.stopService.addStop({
-      postalCode: addStopForm.value.postalCode,
-      houseNumber: addStopForm.value.houseNumber,
-      orderId: addStopForm.value.orderId,
+    const result$ = this.stopService.addStop({
+      postalCode: this.addStopForm.value.postalCode,
+      houseNumber: this.addStopForm.value.houseNumber,
+      orderId: this.addStopForm.value.orderId,
       routeId: this.activeRoute!.id
     }).pipe(
       switchMap(() => this.routeService.getAllRoutes())
     );
-    addStopForm.reset();
+    this.addStopForm.reset();
+    return result$;
   }
 
-  public onUpdateStop(editStopForm: NgForm): void {
-    this.routes$ = this.stopService.updateStop(
+  public onUpdateStop(): Observable<Route[]> {
+    return this.stopService.updateStop(
       this.activeStop!.id,
-      editStopForm.value.postalCode,
-      editStopForm.value.houseNumber,
-      editStopForm.value.orderId,
-      editStopForm.value.routeId
+      this.editStopForm.value.postalCode,
+      this.editStopForm.value.houseNumber,
+      this.editStopForm.value.orderId,
+      this.editStopForm.value.routeId
     ).pipe(
       switchMap(() => this.routeService.getAllRoutes())
     );
   }
 
-  public onDeleteStop(stopId: number): void {
-    this.routes$ = this.stopService.deleteStop(stopId).pipe(
+  public onDeleteStop(stopId: number): Observable<Route[]> {
+    return this.stopService.deleteStop(stopId).pipe(
       switchMap(() => this.routeService.getAllRoutes())
     );
-  }
-
-  public onDeliverStop(routes: Observable<Route[]>): void {
-    this.routes$ = routes;
   }
 }
