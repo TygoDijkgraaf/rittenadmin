@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Observable, Subject, Subscription, of, startWith, switchMap } from 'rxjs';
+import { Observable, Subject, Subscription, combineLatest, map, of, startWith, switchMap, tap } from 'rxjs';
 import { Order } from './order';
 import { OrderService } from './order.service';
 
@@ -23,12 +23,14 @@ export class OrderComponent implements OnInit, OnDestroy {
 
   addForm!: FormGroup;
   editForm!: FormGroup;
+  searchBar: FormControl = new FormControl('');
 
   orderNumberErrorMessage = '';
   private validationMessages: { [key: string]: string } = {
     required: 'Please enter an order number',
     minlength: 'Order number is too short',
-    maxlength: 'Order number is too long'
+    maxlength: 'Order number is too long',
+    pattern: 'Please enter a valid order number'
   };
 
   private subs: Subscription[] = [];
@@ -36,7 +38,7 @@ export class OrderComponent implements OnInit, OnDestroy {
   actionSubject = new Subject<{ action: string, data?: any }>();
   action$ = this.actionSubject.asObservable();
 
-  orders$ = this.action$.pipe(
+  allOrders$ = this.action$.pipe(
     startWith(this.orderService.getAllOrders()),
     switchMap(action => {
       if (action instanceof Observable) return action;
@@ -48,23 +50,41 @@ export class OrderComponent implements OnInit, OnDestroy {
         case 'deleteOrder':
           return this.onDeleteOrder(action.data);
         default:
-          return of(null);
+          return this.orderService.getAllOrders();
       }
     })
+  );
+
+  searchTerm$ = this.searchBar.valueChanges.pipe(
+    startWith('')
+  );
+
+  orders$ = combineLatest([
+    this.allOrders$,
+    this.searchTerm$
+  ]).pipe(
+    map(([orders, searchTerm]) =>
+      orders.filter(order =>
+        order.orderNumber.toUpperCase().includes(searchTerm.toUpperCase()) ||
+        order.description.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    )
   );
 
   ngOnInit(): void {
     this.addForm = new FormGroup({
       orderNumber: new FormControl('', [Validators.required,
                                         Validators.minLength(3),
-                                        Validators.maxLength(20)]),
+                                        Validators.maxLength(20),
+                                        Validators.pattern(/^[a-zA-Z0-9]*$/)]),
       description: new FormControl('')
     });
 
     this.editForm = new FormGroup({
       orderNumber: new FormControl('', [Validators.required,
                                         Validators.minLength(3),
-                                        Validators.maxLength(20)]),
+                                        Validators.maxLength(20),
+                                        Validators.pattern(/^[a-zA-Z0-9]*$/)]),
       description: new FormControl('')
     });
 

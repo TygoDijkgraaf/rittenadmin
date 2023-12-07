@@ -13,8 +13,10 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-12 col-lg-7 mx-auto" *ngIf="orders$ | async as orders; else loading">
-      <div id="allOrders">
+    <div class="col-12 col-lg-7 mx-auto" >
+      <div id="allOrders" *ngIf="orders$ | async as orders; else loading">
+        <input type="text" class="form-control search mb-3" [formControl]="searchBar">
+        <span><i class="fa fa-search search-bar-icon"></i></span>
         <div *ngFor="let order of orders">
           <div class="card mb-3">
             <button type="button" class="btn btn-link text-left collapsed" id="heading{{order.orderNumber}}" data-toggle="collapse" [attr.data-target]="'#orderDescription' + order.orderNumber" aria-expanded="false">
@@ -34,14 +36,12 @@
             </div>
           </div>
         </div>
+        <button type="button" class="btn btn-success float-right" data-toggle="modal" data-target="#addOrderModal">Add</button>
       </div>
-      <button type="button" class="btn btn-success float-right" data-toggle="modal" data-target="#addOrderModal">Add</button>
     </div>
     <ng-template #loading>
-      <div class="col-12 col-lg-7 mx-auto" >
-        <div class="spinner">
-          <i class="fa fa-spinner fa-spin fa-pulse"></i>
-        </div>
+      <div class="spinner">
+        <i class="fa fa-spinner fa-spin fa-pulse"></i>
       </div>
     </ng-template>
   </div>
@@ -62,7 +62,7 @@
           <div class="form-group">
             <label for="orderNumber">Order number</label>
             <input type="text"
-                   class="form-control"
+                   class="form-control form-input form-input"
                    id="orderNumber"
                    placeholder="Order number"
                    autocomplete="off"
@@ -74,7 +74,7 @@
           </div>
           <div class="form-group">
             <label for="description">Description</label>
-            <textarea class="form-control"
+            <textarea class="form-control form-input form-input"
                       id="description"
                       placeholder="Description"
                       autocomplete="off"
@@ -106,7 +106,7 @@
               <div class="form-group">
                 <label for="orderNumber">Order number</label>
                 <input type="text"
-                       class="form-control"
+                       class="form-control form-input form-input"
                        id="orderNumber"
                        placeholder="Order number"
                        autocomplete="off"
@@ -119,7 +119,7 @@
               </div>
               <div class="form-group">
                 <label for="description">Description</label>
-                <textarea class="form-control"
+                <textarea class="form-control form-input"
                           id="description"
                           placeholder="Description"
                           formControlName="description">

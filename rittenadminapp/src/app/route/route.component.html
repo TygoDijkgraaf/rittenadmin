@@ -17,6 +17,8 @@
     <ng-container *ngIf="orders$ | async as orders">
       <div class="col-12 col-lg-7 mx-auto">
         <div id="allRoutes">
+          <input type="text" class="form-control search mb-3" [formControl]="searchBar">
+          <span><i class="fa fa-search search-bar-icon"></i></span>
           <ng-container *ngFor="let route of routes; let i = index">
             <div class="card mb-3">
               <button type="button" class="btn btn-link text-left collapsed" id="heading{{i}}" data-toggle="collapse"

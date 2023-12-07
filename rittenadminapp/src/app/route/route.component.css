@@ -52,13 +52,24 @@
     font-size: 80rem;
 }
 
-input, textarea, select, option {
+.search {
+    color: black;
+    font-weight: 800;
+    font-size: 1.2rem;
+}
+
+.search:focus {
+    box-shadow: none;
+    outline: 2px solid white;
+}
+
+.form-input {
     background:#5c6570;
     border: none;
     color: white;
 }
 
-input:focus, textarea:focus, select:focus {
+.form-input:focus {
     background: #5c6570;
     color: white;
     outline: 2px solid #818181;

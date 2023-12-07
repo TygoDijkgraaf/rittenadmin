@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { merge, Observable, of, startWith, Subject, switchMap, Subscription } from 'rxjs';
+import { merge, Observable, of, startWith, Subject, switchMap, Subscription, combineLatest, map } from 'rxjs';
 import { OrderService } from '../order/order.service';
 import { Stop } from '../stop/stop';
 import { StopComponent } from '../stop/stop.component';
@@ -33,6 +33,7 @@ export class RouteComponent implements OnInit, OnDestroy {
   editForm!: FormGroup;
   addStopForm!: FormGroup;
   editStopForm!: FormGroup;
+  searchBar: FormControl = new FormControl('');
 
   postalCodeErrorMessage = '';
   private postalCodeValidationMessages: { [key: string]: string } = {
@@ -59,7 +60,7 @@ export class RouteComponent implements OnInit, OnDestroy {
   );
 
   orders$ = this.orderService.getAllOrders();
-  routes$ = this.action$.pipe(
+  allRoutes$ = this.action$.pipe(
     startWith({action: 'none', data: this.routeService.getAllRoutes()}),
     switchMap(action => {
       if (action.action === 'none') return action.data as Observable<Route[]>;
@@ -79,9 +80,24 @@ export class RouteComponent implements OnInit, OnDestroy {
         case 'deliverStop':
           return action.data as Observable<Route[]>;
         default:
-          return of(null);
+          return this.routeService.getAllRoutes();
       }
     })
+  );
+
+  routes$ = combineLatest([
+    this.allRoutes$,
+    this.searchBar.valueChanges.pipe(
+      startWith('')
+    )
+  ]).pipe(
+    map(([routes, searchTerm]) =>
+      routes.filter(route =>
+        route.id.toString().includes(searchTerm) ||
+        route.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        this.stopsMatchSearchTerm(route.stops, searchTerm)
+      )
+    )
   );
 
   ngOnInit(): void {
@@ -135,6 +151,15 @@ export class RouteComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
       this.subs.forEach(sub => sub.unsubscribe());
+  }
+
+  private stopsMatchSearchTerm(stops: Stop[], searchTerm: string): boolean {
+    for (let stop of stops) {
+      if (stop.postalCode.includes(searchTerm.toUpperCase())) return true;
+      if (stop.houseNumber.includes(searchTerm.toUpperCase())) return true;
+      if (stop.order.orderNumber.includes(searchTerm.toUpperCase())) return true;
+    }
+    return false;
   }
 
   private setPostalCodeMessage(c: AbstractControl): void {
